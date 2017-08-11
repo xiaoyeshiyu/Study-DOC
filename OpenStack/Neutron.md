@@ -1,13 +1,14 @@
 # Neutron网络解析
 - 图示如下
 
-![Neutron](https://cl.ly/2F2g111B0Z3e)
+![Neutron](https://cl.ly/2F2g111B0Z3e/未命名图片.png)
 
 - TAP device
 
 查看instance硬件信息
 
-``` [root@node2 ~]# virsh list
+```
+[root@node2 ~]# virsh list
  Id    Name                           State
 ----------------------------------------------------
  14944 instance-00000070              running
