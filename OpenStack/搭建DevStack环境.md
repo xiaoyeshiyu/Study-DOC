@@ -29,18 +29,7 @@ ens160: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         RX errors 0  dropped 32  overruns 0  frame 0
         TX packets 55598  bytes 4009855 (3.8 MiB)
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
-
-ens192: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-        inet 10.0.0.2  netmask 255.255.255.0  broadcast 10.0.0.255
-        inet6 fe80::20c:29ff:fe34:4585  prefixlen 64  scopeid 0x20<link>
-        ether 00:0c:29:34:45:85  txqueuelen 1000  (Ethernet)
-        RX packets 1902  bytes 174498 (170.4 KiB)
-        RX errors 0  dropped 1  overruns 0  frame 0
-        TX packets 28  bytes 2688 (2.6 KiB)
-        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
-
-
 
 ### 环境搭建
 
@@ -66,10 +55,10 @@ ens192: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 ``` shell
 [root@Mitaka ~]# mkdir -p ~/.pip
 [root@Mitaka ~]# cat ~/.pip/pip.conf 
- [global]
- index-url = http://pypi.douban.com/simple/
- [install] 
- trusted-host = pypi.douban.com
+[global]
+index-url = http://mirrors.aliyun.com/pypi/simple/  
+[install] 
+trusted-host = mirrors.aliyun.com
 ```
 
 使用阿里yum源
@@ -79,120 +68,39 @@ ens192: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 [root@Mitaka ~]# wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
 [root@Mitaka ~]# yum clean all 
 [root@Mitaka ~]# yum makecache 
+[root@Mitaka ~]# yum install epel-release -y
+[root@Mitaka ~]# yum install python-pip -y
+[root@Mitaka ~]# pip install --upgrade pip
+[root@Mitaka ~]# pip install -U os-testr
 ```
 
 ### 安装阶段
 
+创建stack用户
+
+```shell
+[root@Mitaka ~]# useradd -s /bin/bash -d /opt/stack -m stack
+[root@Mitaka ~]# echo "stack ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/stack
+```
+
 下载DevStack
 
 ``` shell
-[root@Mitaka ~]# cd /home/
-[root@Mitaka home]# git clone http://git.trystack.cn/openstack-dev/devstack.git -b stable/ocata
-```
-
-创建stack用户
-
-``` shell
-[root@Mitaka home]# mkdir -p /home/stack/logs
-[root@Mitaka home]# cd devstack/tools/
-[root@Mitaka tools]# ./create-stack-user.sh
-[root@Mitaka tools]# passwd stack
-[root@Mitaka tools]# chown stack:stack -R /home/stack
-[root@Mitaka tools]# chown stack:stack -R /home/devstack
-```
-
-授权stack用户，在第98行添加一行
-
-``` shell
-[root@Mitaka tools]# vim /etc/sudoers
-
-99 stack ALL=(ALL:ALL)     ALL
+[root@Mitaka ~]# sudo su - stack
+[stack@Mitaka ~]$ cd
+[stack@Mitaka ~]$ git clone https://git.openstack.org/openstack-dev/devstack
 ```
 
 ### 创建local.conf配置文件
 
 ``` shell
+[stack@Mitaka ~]$ cd devstack/
 [stack@Mitaka devstack]$ cat local.conf 
 [[local|localrc]]
-
-# use TryStack git mirror
-GIT_BASE=http://git.trystack.cn
-NOVNC_REPO=http://git.trystack.cn/kanaka/noVNC.git
-SPICE_REPO=http://git.trystack.cn/git/spice/spice-html5.git
-
-#OFFLINE=True
-RECLONE=True
-
-# Define images to be automatically downloaded during the DevStack built process.
-#DOWNLOAD_DEFAULT_IMAGES=False
-#IMAGE_URLS="http://images.trystack.cn/cirros/cirros-0.3.4-x86_64-disk.img"
-
-HOST_IP=192.168.50.97
-
-
-# Credentials
-DATABASE_PASSWORD=daemon
 ADMIN_PASSWORD=daemon
-SERVICE_PASSWORD=daemon
-SERVICE_TOKEN=daemon
-RABBIT_PASSWORD=daemon
-
-HORIZON_BRANCH=stable/ocata
-KEYSTONE_BRANCH=stable/ocata
-NOVA_BRANCH=stable/ocata
-NEUTRON_BRANCH=stable/ocata
-GLANCE_BRANCH=stable/ocata
-CINDER_BRANCH=stable/ocata
-
-
-#keystone
-KEYSTONE_TOKEN_FORMAT=UUID
-
-##Heat
-HEAT_BRANCH=stable/ocata
-enable_service h-eng h-api h-api-cfn h-api-cw
-
-
-## Swift
-SWIFT_BRANCH=stable/ocata
-ENABLED_SERVICES+=,s-proxy,s-object,s-container,s-account
-SWIFT_REPLICAS=1
-SWIFT_HASH=011688b44136573e209e
-
-
-# Enabling Neutron (network) Service
-disable_service n-net
-enable_service q-svc
-enable_service q-agt
-enable_service q-dhcp
-enable_service q-l3
-enable_service q-meta
-enable_service q-metering
-enable_service neutron
-
-## Neutron options
-Q_USE_SECGROUP=True
-FLOATING_RANGE="192.168.50.0/24"
-FIXED_RANGE="10.0.0.0/24"
-NETWORK_GATEWAY="10.0.0.1"
-Q_FLOATING_ALLOCATION_POOL=start=192.168.50.100,end=192.168.50.200
-PUBLIC_NETWORK_GATEWAY="192.168.50.1"
-Q_L3_ENABLED=True
-PUBLIC_INTERFACE=ens160
-Q_USE_PROVIDERNET_FOR_PUBLIC=True
-OVS_PHYSICAL_BRIDGE=br-ex
-PUBLIC_BRIDGE=br-ex
-OVS_BRIDGE_MAPPINGS=public:br-ex
-
-# #VLAN configuration.
-Q_PLUGIN=ml2
-ENABLE_TENANT_VLANS=True
-
-# Logging
-LOGFILE=/home/stack/logs/stack.sh.log
-VERBOSE=True
-LOG_COLOR=True
-SCREEN_LOGDIR=/home/stack/logs
+DATABASE_PASSWORD=$ADMIN_PASSWORD
+RABBIT_PASSWORD=$ADMIN_PASSWORD
+SERVICE_PASSWORD=$ADMIN_PASSWORD
 ```
 
 ### 开始安装
@@ -202,3 +110,77 @@ SCREEN_LOGDIR=/home/stack/logs
 ```
 
 这个过程会持续15-20分钟，这个时间取决于网络下载速度。
+
+
+
+## 错误总结
+
+### 出现 generate-subunit
+
+``` shell
+2016-07-27 08:40:04.711 | ./stack.sh:686:git_clone
+2016-07-27 08:40:04.711 | /devstack/functions-common:444:git_timed
+2016-07-27 08:40:04.711 | /devstack/functions-common:510:die
+2016-07-27 08:40:04.713 | [ERROR] /devstack/functions-common:510 git call failed: [git clone git://git.openstack.org/openstack/requirements.git /opt/stack/requirements]
+2016-07-27 08:40:05.715 | Error on exit
+2016-07-27 08:40:05.716 | ./stack.sh: line 463: generate-subunit: command not found
+```
+
+解决办法：
+
+``` shell
+[root@Mitaka ~]# yum install python-pip -y
+[root@Mitaka ~]# pip install --upgrade pip
+[root@Mitaka ~]# pip install -U os-testr
+```
+
+### 出现网络不通
+
+原因：在安装neutron之后，网卡ens160会加入到br-ex虚拟交换机上，导致网络出现故障（具体故障原因还需深究）
+
+解决办法：注销ens160配置文件中的IP地址，新建br-ex配置文件，并配置上IP地址
+
+``` shell
+[root@Mitaka network-scripts]# cat ifcfg-ens160 
+TYPE=Ethernet
+BOOTPROTO=no
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+NAME=ens160
+UUID=24117a8a-62ef-4415-ac3e-e274bb0f7ad3
+DEVICE=ens160
+ONBOOT=yes
+#IPADDR=192.168.50.97
+#PREFIX=24
+#GATEWAY=192.168.50.1
+#DNS1=114.114.114.114
+TYPE=OVSPort
+OVS_BRIDGE=br-ex
+DEVICETYPE=ovs
+
+[root@Mitaka network-scripts]# cat ifcfg-br-ex 
+DEVICE=br-ex
+DEVICETYPE=ovs
+TYPE=OVSBridge
+BOOTPROTO=static
+ONBOOT=yes
+IPADDR=192.168.50.97
+PREFIX=24
+GATEWAY=192.168.50.1
+DNS1=114.114.114.114
+```
+
+### 出现某个域名无法解析
+
+``` shell
+2017-08-31 02:23:30.452 | 
+2017-08-31 02:23:30.453 | 
+2017-08-31 02:23:30.456 | curl: (6) Could not resolve host: git.openstack.org; Unknown error
+2017-08-31 02:23:30.457 | 
+2017-08-31 02:23:30.458 | ERROR: could not install deps [-r/opt/stack/tempest/requirements.txt]; v = InvocationError('/opt/stack/tempest/tools/tox_install.sh https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt -r/opt/stack/tempest/requirements.txt (see /opt/stack/tempest/.tox/tempest/log/venv-tempest-1.log)', 6)
+2017-08-31 02:23:30.463 | ___________________________________ summary ____________________________________
+```
+
+解决办法：
+
