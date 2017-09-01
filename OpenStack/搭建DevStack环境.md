@@ -6,8 +6,6 @@
 
 DevStack环境适用于Ubuntu 16.04/17.04,Fedore 24/25,CentOS/RHEL 7,Debian和OpenSUSE。
 
-如果没有更好的选择，推荐Ubuntu 16.04。
-
 下面使用的是CentOS 7.3
 
 ``` shell
@@ -134,53 +132,55 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 [root@Mitaka ~]# pip install -U os-testr
 ```
 
-### 出现网络不通
-
-原因：在安装neutron之后，网卡ens160会加入到br-ex虚拟交换机上，导致网络出现故障（具体故障原因还需深究）
-
-解决办法：注销ens160配置文件中的IP地址，新建br-ex配置文件，并配置上IP地址
+### 出现
 
 ``` shell
-[root@Mitaka network-scripts]# cat ifcfg-ens160 
-TYPE=Ethernet
-BOOTPROTO=no
-DEFROUTE=yes
-PEERDNS=yes
-PEERROUTES=yes
-NAME=ens160
-UUID=24117a8a-62ef-4415-ac3e-e274bb0f7ad3
-DEVICE=ens160
-ONBOOT=yes
-#IPADDR=192.168.50.97
-#PREFIX=24
-#GATEWAY=192.168.50.1
-#DNS1=114.114.114.114
-TYPE=OVSPort
-OVS_BRIDGE=br-ex
-DEVICETYPE=ovs
-
-[root@Mitaka network-scripts]# cat ifcfg-br-ex 
-DEVICE=br-ex
-DEVICETYPE=ovs
-TYPE=OVSBridge
-BOOTPROTO=static
-ONBOOT=yes
-IPADDR=192.168.50.97
-PREFIX=24
-GATEWAY=192.168.50.1
-DNS1=114.114.114.114
+[ERROR] /opt/stack/devstack/lib/nova:816 nova-api did not start
 ```
 
-### 出现某个域名无法解析
+根据
 
-``` shell
-2017-08-31 02:23:30.452 | 
-2017-08-31 02:23:30.453 | 
-2017-08-31 02:23:30.456 | curl: (6) Could not resolve host: git.openstack.org; Unknown error
-2017-08-31 02:23:30.457 | 
-2017-08-31 02:23:30.458 | ERROR: could not install deps [-r/opt/stack/tempest/requirements.txt]; v = InvocationError('/opt/stack/tempest/tools/tox_install.sh https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt -r/opt/stack/tempest/requirements.txt (see /opt/stack/tempest/.tox/tempest/log/venv-tempest-1.log)', 6)
-2017-08-31 02:23:30.463 | ___________________________________ summary ____________________________________
-```
+> http://openstack.10931.n7.nabble.com/can-t-install-devstack-nova-api-did-not-start-td17280.html  
+
+所描述
+
+![nova-api did not start](https://cl.ly/3R1U1o191m30/Image%202017-09-01%20at%205.27.37%20PM.png)
 
 解决办法：
+
+``` shell
+[root@Mitaka nova]# pip install -I oslo.config==1.1.1 
+```
+
+
+
+## stack.sh中的执行顺序：
+
+1. 支持OS类型包括Ubuntu 12.04或以上；Fedora F18或以上
+2. 禁止使用root运行
+3. 读取local.conf
+4. 检查stackrc文件是否存在
+5. 检查Devstack是不是已经在运行。如果在运行，则退出
+6. 配置目标安装目录，包括创建目录，设置权限
+7. 配置hostname，logging等
+8. 读取各组件的安装和启动script
+9. 如果没有配置密码，则需要用户输入各密码
+10. 配置数据库
+11. 配置Keystone
+12. 安装各pre-condition包
+13. 安装client包
+14. 安装和配置keystone，swift，glance，cinder，neutron，nova，horizon，ceilometer，heat，CA
+15. 配置数据库
+16. 配置screen
+17. 创建个组件使用的账号
+18. 初始化和启动horizon
+19. 启动swift，glance，
+20. 安装images
+21. 启动swift，nova_api，neutron，nova，cinder，ceilometer，heat
+
+
+
+参考资料：
+
+> http://blog.csdn.net/zhaihaifei/article/details/40893823
 
