@@ -184,3 +184,6 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 
 > http://blog.csdn.net/zhaihaifei/article/details/40893823
 
+# 下面写下的东西时周末用来测试新到的蓝牙键盘。
+for testing blueteeth board.
+
