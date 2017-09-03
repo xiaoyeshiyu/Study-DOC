@@ -113,6 +113,13 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 
 ## 错误总结
 
+当安装出现问题的时候，首先清除当前环境，然后修改配置文件之后再次执行
+
+```
+[stack@Mitaka devstack]$ ./unstack.sh 
+[stack@Mitaka devstack]$ ./stack.sh 
+```
+
 ### 出现 generate-subunit
 
 ``` shell
@@ -132,7 +139,7 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 [root@Mitaka ~]# pip install -U os-testr
 ```
 
-### 出现
+### 出现nova-api did not start
 
 ``` shell
 [ERROR] /opt/stack/devstack/lib/nova:816 nova-api did not start
@@ -149,10 +156,29 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 解决办法：
 
 ``` shell
-[root@Mitaka nova]# pip install -I oslo.config==1.1.1 
+[root@Mitaka nova]# pip install oslo.config
 ```
 
+### 出现keystone not start 
 
+``` shell
+[ERROR] /opt/stack/devstack/lib/keystone:567 keystone did not start
+```
+
+解决办法：
+
+在local.conf中添加
+
+``` shell
+HOST_IP=192.168.50.97
+SERVICE_HOST=127.0.0.1
+```
+
+## 安装成功
+
+安装成功之后，界面会显示
+
+![DevStack安装成功图](https://cl.ly/17303l261C2E/Image%202017-09-03%20at%207.44.23%20PM.png)
 
 ## stack.sh中的执行顺序：
 
@@ -183,7 +209,4 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 参考资料：
 
 > http://blog.csdn.net/zhaihaifei/article/details/40893823
-
-# 下面写下的东西时周末用来测试新到的蓝牙键盘。
-for testing blueteeth board.
 
