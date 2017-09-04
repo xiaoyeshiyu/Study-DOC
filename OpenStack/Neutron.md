@@ -1,4 +1,7 @@
+[TOC]
+
 # Neutron网络解析
+
 ## 图示如下
 
 ![Neutron](https://cl.ly/1x2q1y3Y2k3K/Image%202017-08-30%20at%206.25.38%20PM.png)
@@ -30,7 +33,7 @@
 
 ```
 
-可以看到instance的虚拟网卡MAC地址为fa:16:3e:52:43:c5，连接到的bridge为qbr85bcbfb0-bc，target device也就是对应物理机上的虚拟显卡为tap85bcbfb0-bc。
+可以看到instance的虚拟网卡MAC地址为`fa:16:3e:52:43:c5`，连接到的bridge为`qbr85bcbfb0-bc`，target device也就是对应物理机上的虚拟显卡为`tap85bcbfb0-bc`。
 
 查看物理机上的网卡
 ```
@@ -41,12 +44,12 @@
        valid_lft forever preferred_lft forever
 ```
 
-可以看到物理机上tap85bcbfb0-bc网卡的MAC地址为fe:16:3e:52:43:c5，对应的也就是instance 14944的虚拟网卡。
+可以看到物理机上`tap85bcbfb0-bc`网卡的MAC地址为`fe:16:3e:52:43:c5`，对应的也就是`instance 14944`的虚拟网卡。
 
 - TAP设备主要是用来让宿主机可以接收到数据帧。
 
 ## Linux Bridge
-上面看到instance 14944的网卡连接的bridge是qbr85bcbfb0-bc
+上面看到`instance 14944`的网卡连接的bridge是`qbr85bcbfb0-bc`
 查看网桥
 ```
 [root@node2 ~]# brctl show
@@ -61,12 +64,12 @@ qbr85bcbfb0-bc		8000.c67808b20c2e	no		qvb85bcbfb0-bc
 qbrf010b8f6-df		8000.de5f220adb0c	no		qvbf010b8f6-df
 							tapf010b8f6-df
 ```
-qbr85bcbfb0-bc上，有两个接口，一个是qvb85bcbfb0-bc，一个是tap85bcbfb0-bc。也就是说，instance 14944连接在虚拟网桥qbr85bcbfb0-bc上。
+`qbr85bcbfb0-bc`上，有两个接口，一个是`qvb85bcbfb0-bc`，一个是`tap85bcbfb0-bc`。也就是说，`instance 14944`连接在虚拟网桥`qbr85bcbfb0-bc`上。
 
 - Linux Bridge类似一个集线器，用来过渡物理机到宿主机的数据帧。
 
 ## VETH
-查看物理机网络qvb85bcbfb0-bc网卡的详细信息
+查看物理机网络`qvb85bcbfb0-bc`网卡的详细信息
 ```
 [root@node2 ~]# ip a | grep qvb85bcbfb0-bc
 40: qvo85bcbfb0-bc@qvb85bcbfb0-bc: <BROADCAST,MULTICAST,PROMISC,UP,LOWER_UP> mtu 1450 qdisc noqueue master ovs-system state UP qlen 1000
@@ -81,7 +84,7 @@ NIC statistics:
 NIC statistics:
      peer_ifindex: 40
 ```
-qvo85bcbfb0-bc和qvb85bcbfb0-bc属于一对peer，可以理解为一个网线的两端，也就是说一根网线的一端qvb85bcbfb0-bc连接在虚拟网桥qbr85bcbfb0-bc上，而另外的一端qvo85bcbfb0-bc则是连接在OpenvSwitch的be-int上。
+`qvo85bcbfb0-bc`和`qvb85bcbfb0-bc`属于一对peer，可以理解为一个网线的两端，也就是说一根网线的一端`qvb85bcbfb0-bc`连接在虚拟网桥`qbr85bcbfb0-bc`上，而另外的一端`qvo85bcbfb0-bc`则是连接在OpenvSwitch的be-int上。
 
 - VETH可以直接理解为一个网线，一端连接在虚拟网桥上，另一端连接在虚拟交换机上，实现数据流的传递
 
