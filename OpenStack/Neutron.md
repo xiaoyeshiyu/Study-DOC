@@ -8,7 +8,7 @@
 
 ## TAP device
 
-查看instance硬件信息
+查看`instance`硬件信息
 
 ```
 [root@node2 ~]# virsh list
@@ -20,7 +20,7 @@
 
 ```
 
-以实例14944为例子，查看实例14944具体硬件信息
+以实例`14944`为例子，查看实例`14944`具体硬件信息
 ```
 [root@node2 ~]# virsh edit 14944
 <interface type='bridge'>
@@ -33,7 +33,7 @@
 
 ```
 
-可以看到instance的虚拟网卡MAC地址为`fa:16:3e:52:43:c5`，连接到的bridge为`qbr85bcbfb0-bc`，target device也就是对应物理机上的虚拟显卡为`tap85bcbfb0-bc`。
+可以看到`instance`的虚拟网卡MAC地址为`fa:16:3e:52:43:c5`，连接到的`bridge`为`qbr85bcbfb0-bc`，`target device`也就是对应物理机上的虚拟显卡为`tap85bcbfb0-bc`。
 
 查看物理机上的网卡
 ```
@@ -84,7 +84,7 @@ NIC statistics:
 NIC statistics:
      peer_ifindex: 40
 ```
-`qvo85bcbfb0-bc`和`qvb85bcbfb0-bc`属于一对peer，可以理解为一个网线的两端，也就是说一根网线的一端`qvb85bcbfb0-bc`连接在虚拟网桥`qbr85bcbfb0-bc`上，而另外的一端`qvo85bcbfb0-bc`则是连接在OpenvSwitch的be-int上。
+`qvo85bcbfb0-bc`和`qvb85bcbfb0-bc`属于一对peer，可以理解为一个网线的两端，也就是说一根网线的一端`qvb85bcbfb0-bc`连接在虚拟网桥`qbr85bcbfb0-bc`上，而另外的一端`qvo85bcbfb0-bc`则是连接在`OpenvSwitch`的`br-int`上。
 
 - VETH可以直接理解为一个网线，一端连接在虚拟网桥上，另一端连接在虚拟交换机上，实现数据流的传递
 
@@ -195,3 +195,102 @@ NIC statistics:
       tap85bcbfb0-bc：tap为tap设备  + ID
       qvb85bcbfb0-bc：qvb为qemu virtual bridge  +ID
       qvo85bcbfb0-bc：qvo为qemu virtual OpenvSwitch +ID
+
+## DHCP
+
+先查看到DHCP的空间位置
+
+``` shel
+[root@hyhive01 ~]# ip netns ls
+qdhcp-624031b6-981c-480c-94ee-f9459d1c07ed
+qdhcp-d72f0c1e-cc46-4d8f-a918-60c0088cc60a
+```
+
+选取上面一个DHCP查看详细信息
+
+``` shell
+[root@hyhive01 ~]# ip netns exec qdhcp-624031b6-981c-480c-94ee-f9459d1c07ed ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+28: tap42681808-04: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN qlen 1000
+    link/ether fa:16:3e:1c:f9:38 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.100.100/24 brd 192.168.100.255 scope global tap42681808-04
+       valid_lft forever preferred_lft forever
+    inet 169.254.169.254/16 brd 169.254.255.255 scope global tap42681808-04
+       valid_lft forever preferred_lft forever
+    inet6 fe80::f816:3eff:fe1c:f938/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+可以看到的是IP地址会从`tap42681808-04`发送出去，并且网段为`192.168.100.0/24`网段
+
+查看`OpenvSwitch`上`tap42681808-04`的信息
+
+```shell
+    Bridge br-int
+        Port "tap42681808-04"
+            tag: 3
+            Interface "tap42681808-04"
+                type: internal
+```
+
+`tap42681808-04`打的标签为3号，新建虚拟机的时候选择网卡网段，对应的就是tag
+
+*目前笔者比较好奇的是：多节点情况下，不同节点的tag ID只是本地有效，节点之间通过vxlan连接，而不是像交换机直接用`trunk`连接，每台交换机的vlan ID是互通的。*
+
+## ROUTER
+
+先查看ROUTER的网络位置
+
+``` shell
+[root@hyhive02 ~]# ip netns ls
+qrouter-8800b853-2938-4ecc-89ce-a7189f78ef0c
+qdhcp-0be33604-c845-4e71-9e88-ba1facec20e9
+```
+
+查看ROUTER详细信息
+
+``` shell
+[root@hyhive02 ~]# ip netns exec qrouter-8800b853-2938-4ecc-89ce-a7189f78ef0c ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+15: qr-0fd24acc-81: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN qlen 1000
+    link/ether fa:16:3e:c0:e6:7e brd ff:ff:ff:ff:ff:ff
+    inet 192.168.0.1/24 brd 192.168.0.255 scope global qr-0fd24acc-81
+       valid_lft forever preferred_lft forever
+    inet6 fe80::f816:3eff:fec0:e67e/64 scope link 
+       valid_lft forever preferred_lft forever
+27: qg-ae1e7daf-58: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN qlen 1000
+    link/ether fa:16:3e:4c:e7:29 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.10.9/24 brd 192.168.10.255 scope global qg-ae1e7daf-58
+       valid_lft forever preferred_lft forever
+    inet6 fe80::f816:3eff:fe4c:e729/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+查看ROUTER路由详细信息
+
+``` shell
+[root@hyhive02 ~]# ip netns exec qrouter-8800b853-2938-4ecc-89ce-a7189f78ef0c route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+default         gateway         0.0.0.0         UG    0      0        0 qg-ae1e7daf-58
+192.168.0.0     0.0.0.0         255.255.255.0   U     0      0        0 qr-0fd24acc-81
+192.168.10.0    0.0.0.0         255.255.255.0   U     0      0        0 qg-ae1e7daf-58
+```
+
+可以看到的是，路由器有两个接口，一个连接内部网络，图上的为`192.168.0.0/24`网段，一个为外部网络，图上为`192.168.10.0/24`，其中，内部网络可以连接多个，但是外部网络只能连接一个。外部网络可以是直接连接外网的`br-ex`网桥上的物理网卡接口；也可以是带有vlan ID的子网网段，相对应的，连接的外部网络设备上需要有带上该ID的vlan接口。
+
+
+
+**DHCP服务是如何跨国tag对虚拟机提供IP地址的？虚拟机的网络流量是如果可以从`br-int`流向`br-ex`再流向外网的？**
+
+诸如此类问题，需要对OpenvSwitch和neutron源码有更深入的了解，后面有机会再往下写。
