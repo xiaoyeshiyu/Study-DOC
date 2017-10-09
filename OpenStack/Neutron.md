@@ -10,18 +10,17 @@
 
 查看`instance`硬件信息
 
-```
+```shell
 [root@node2 ~]# virsh list
  Id    Name                           State
 ----------------------------------------------------
  14944 instance-00000070              running
  18862 instance-0000002d              running
  18893 instance-00000076              running
-
 ```
 
 以实例`14944`为例子，查看实例`14944`具体硬件信息
-```
+```shell
 [root@node2 ~]# virsh edit 14944
 <interface type='bridge'>
   <mac address='fa:16:3e:52:43:c5'/>
@@ -30,13 +29,12 @@
   <model type='virtio'/>
   <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
 </interface>
-
 ```
 
 可以看到`instance`的虚拟网卡MAC地址为`fa:16:3e:52:43:c5`，连接到的`bridge`为`qbr85bcbfb0-bc`，`target device`也就是对应物理机上的虚拟显卡为`tap85bcbfb0-bc`。
 
 查看物理机上的网卡
-```
+```shell
 [root@node2 ~]# ip a
 42: tap85bcbfb0-bc: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc pfifo_fast master qbr85bcbfb0-bc state UNKNOWN qlen 1000
     link/ether fe:16:3e:52:43:c5 brd ff:ff:ff:ff:ff:ff
@@ -51,7 +49,7 @@
 ## Linux Bridge
 上面看到`instance 14944`的网卡连接的bridge是`qbr85bcbfb0-bc`
 查看网桥
-```
+```shell
 [root@node2 ~]# brctl show
 bridge name	bridge id		STP enabled	interfaces
 qbr09d052bf-16		8000.b216e6c26e13	no		qvb09d052bf-16
@@ -70,13 +68,13 @@ qbrf010b8f6-df		8000.de5f220adb0c	no		qvbf010b8f6-df
 
 ## VETH
 查看物理机网络`qvb85bcbfb0-bc`网卡的详细信息
-```
+```shell
 [root@node2 ~]# ip a | grep qvb85bcbfb0-bc
 40: qvo85bcbfb0-bc@qvb85bcbfb0-bc: <BROADCAST,MULTICAST,PROMISC,UP,LOWER_UP> mtu 1450 qdisc noqueue master ovs-system state UP qlen 1000
 41: qvb85bcbfb0-bc@qvo85bcbfb0-bc: <BROADCAST,MULTICAST,PROMISC,UP,LOWER_UP> mtu 1450 qdisc noqueue master qbr85bcbfb0-bc state UP qlen 1000
 ```
 很明显，这两个网卡有关联。
-```
+```shell
 [root@node2 ~]# ethtool -S qvo85bcbfb0-bc
 NIC statistics:
      peer_ifindex: 41
@@ -90,7 +88,7 @@ NIC statistics:
 
 ## OpenvSwitch
 查看OpenvSwitch的路由器的详细信息
-```
+```shell
 [root@node2 ~]# ovs-vsctl show
 4ece5774-21aa-4ff6-8e7e-343983396eee
     Manager "ptcp:6640:127.0.0.1"
@@ -177,11 +175,11 @@ NIC statistics:
 ```
 上面的信息主要包含这么几点：
 
-        qvo85bcbfb0-bc连接在桥br-int上；
-        br-int通过int-br-ex和phy-br-ex这对配对接口相连；
-        br-ex中有物理网卡enp4s0f1接口，如果enp4s0f1网口连接外部网络设备交换机，则可以实现虚拟机br-ex和外网直通；
-        br-int和br-tun通过patch-int和patch-tun这对配对接口相连；
-        br-tun中的接口vxlan-0a0a0a01通过ip tunnel以及内部IP，连接到集群中另外一台物理设备上，实现不同宿主机上虚拟机网络的互通。
+    qvo85bcbfb0-bc连接在桥br-int上；
+    br-int通过int-br-ex和phy-br-ex这对配对接口相连；
+    br-ex中有物理网卡enp4s0f1接口，如果enp4s0f1网口连接外部网络设备交换机，则可以实现虚拟机br-ex和外网直通；
+    br-int和br-tun通过patch-int和patch-tun这对配对接口相连；
+    br-tun中的接口vxlan-0a0a0a01通过ip tunnel以及内部IP，连接到集群中另外一台物理设备上，实现不同宿主机上虚拟机网络的互通。
 
 - OpenvSwitch主要是通过不同功能的交换机之间的相互连接，从而实现虚拟机和外部网络的通信，进一步实现SDN，即软件定义网络。
 
@@ -200,7 +198,7 @@ NIC statistics:
 
 先查看到DHCP的空间位置
 
-``` shel
+``` shell
 [root@hyhive01 ~]# ip netns ls
 qdhcp-624031b6-981c-480c-94ee-f9459d1c07ed
 qdhcp-d72f0c1e-cc46-4d8f-a918-60c0088cc60a
