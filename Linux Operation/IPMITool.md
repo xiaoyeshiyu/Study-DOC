@@ -81,6 +81,15 @@ ID  Name	     Callin  Link Auth	IPMI Msg   Channel Priv Limit
 3   test1            true    false      false      ADMINISTRATOR
 ```
 
+4. 重设密码
+
+``` shell
+[root@hyhive ~]# ipmitool user set password 2 ADMIN
+## 2指的是user ID，ADMIN指的是之后的密码
+```
+
+
+
 ### 远程电源控制类
 
 1. 查看服务器当前开电状态
