@@ -10,7 +10,7 @@
 
 User请求访问OpenStack，Keystone首先验。User除了admin、demo，还包括各项组件,nova、cinder、glance、neutron等
 
-##Credentials
+## Credentials
 
 Credentials是User用来证明自己身份信息的，可以是:
 
@@ -19,7 +19,7 @@ Credentials是User用来证明自己身份信息的，可以是:
 3. API Key
 4. 其他高级方式
 
-##Authentication
+## Authentication
 
 Authentication是Keystone验证User的过程。
 
@@ -27,7 +27,7 @@ Authentication是Keystone验证User的过程。
 
 然后，Keystone通过验证，返回User一个Token作为后续访问的Credentials
 
-##Token
+## Token
 
 Token是由字母数字组成的字符串
 
@@ -44,11 +44,11 @@ Project用于将OpenStack的资源（计算、存储和网络）进行分组和�
 3. 每个User必须挂在Project里才能访问该Project的资源
 4. admin相当于root用户，具有最高权限
 
-##Service
+## Service
 
 OpenStack的Service包括Compute（Nova）、Block Storage（Cinder）、Object Storage（Swift）、Image Service (Glance) 、Networking Service (Neutron) 等。每个 Service 都会提供若干个 Endpoint，User 通过 Endpoint 访问资源和执行操作。
 
-##Endpoint
+## Endpoint
 
 通过命令可以查看
 
