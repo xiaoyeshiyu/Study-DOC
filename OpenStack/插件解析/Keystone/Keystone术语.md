@@ -10,7 +10,7 @@
 
 User请求访问OpenStack，Keystone首先验。User除了admin、demo，还包括各项组件,nova、cinder、glance、neutron等
 
-##Credentials
+## Credentials
 
 Credentials是User用来证明自己身份信息的，可以是:
 
@@ -19,7 +19,7 @@ Credentials是User用来证明自己身份信息的，可以是:
 3. API Key
 4. 其他高级方式
 
-##Authentication
+## Authentication
 
 Authentication是Keystone验证User的过程。
 
