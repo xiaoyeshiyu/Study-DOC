@@ -174,6 +174,40 @@ HOST_IP=192.168.50.97
 SERVICE_HOST=127.0.0.1
 ```
 
+### 第二个节点出现
+
+``` shell
+2017-12-08 03:39:15.552 | +functions:wait_for_compute:455            echo 'Didn'\''t find service registered by hostname after 60 seconds'
+2017-12-08 03:39:15.552 | Didn't find service registered by hostname after 60 seconds
+2017-12-08 03:39:15.558 | +functions:wait_for_compute:456            openstack --os-cloud devstack-admin --os-region RegionOne compute service list
+2017-12-08 03:39:18.400 | +----+------------------+---------+----------+---------+-------+----------------------------+
+2017-12-08 03:39:18.400 | | ID | Binary           | Host    | Zone     | Status  | State | Updated At                 |
+2017-12-08 03:39:18.400 | +----+------------------+---------+----------+---------+-------+----------------------------+
+2017-12-08 03:39:18.400 | |  3 | nova-scheduler   | stack01 | internal | enabled | up    | 2017-12-07T09:25:01.000000 |
+2017-12-08 03:39:18.400 | |  5 | nova-consoleauth | stack01 | internal | enabled | up    | 2017-12-07T09:24:59.000000 |
+2017-12-08 03:39:18.401 | |  6 | nova-conductor   | stack01 | internal | enabled | up    | 2017-12-07T09:24:57.000000 |
+2017-12-08 03:39:18.401 | |  1 | nova-conductor   | stack01 | internal | enabled | up    | 2017-12-07T09:24:57.000000 |
+2017-12-08 03:39:18.401 | |  2 | nova-compute     | stack01 | nova     | enabled | up    | 2017-12-07T09:25:05.000000 |
+2017-12-08 03:39:18.401 | +----+------------------+---------+----------+---------+-------+----------------------------+
+2017-12-08 03:39:18.488 | +functions:wait_for_compute:458            return 124
+2017-12-08 03:39:18.496 | +lib/nova:is_nova_ready:1                  exit_trap
+2017-12-08 03:39:18.504 | +./stack.sh:exit_trap:493                  local r=124
+2017-12-08 03:39:18.512 | ++./stack.sh:exit_trap:494                  jobs -p
+2017-12-08 03:39:18.520 | +./stack.sh:exit_trap:494                  jobs=
+2017-12-08 03:39:18.528 | +./stack.sh:exit_trap:497                  [[ -n '' ]]
+2017-12-08 03:39:18.535 | +./stack.sh:exit_trap:503                  '[' -f /tmp/tmp.rcd8I7zW4x ']'
+2017-12-08 03:39:18.541 | +./stack.sh:exit_trap:504                  rm /tmp/tmp.rcd8I7zW4x
+2017-12-08 03:39:18.549 | +./stack.sh:exit_trap:508                  kill_spinner
+2017-12-08 03:39:18.556 | +./stack.sh:kill_spinner:407               '[' '!' -z '' ']'
+2017-12-08 03:39:18.563 | +./stack.sh:exit_trap:510                  [[ 124 -ne 0 ]]
+2017-12-08 03:39:18.569 | +./stack.sh:exit_trap:511                  echo 'Error on exit'
+2017-12-08 03:39:18.569 | Error on exit
+```
+
+解决办法
+
+·
+
 ## 安装成功
 
 安装成功之后，界面会显示

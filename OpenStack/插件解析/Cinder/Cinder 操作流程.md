@@ -880,6 +880,151 @@ cinder-volume 服务节点上 mount point 为 /nfs_storage。在 /etc/cinder/cin
 
 创建 NFS volume 操作方法与 LVM volume 一样，唯一区别是在 volume type 的下拉列表中选择“nfs”。
 
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207092624.jpg)
+
+点击“Create Volume”，cinder-api，cinder-scheduler 和 cinder-volume 共同协作创建 volume “nfs-vol-1”。这个流程与 LVM volume 一样。
+
+下面重点分析 cinder-volume 日志，看看 NFS volume provider 是如何创建 volume 的。 日志在 /opt/stack/logs/c-vol.log。
+
+cinder-volume 也会启动 Flow 来完成 volume 创建工作，Flow 的名称为 volume_create_manager。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207092840.jpg)
+
+volume_create_manager 首先执行 ExtractVolumeRefTask, OnFailureRescheduleTask, ExtractVolumeSpecTask, NotifyVolumeActionTask 为 volume创建做准备。然后由 CreateVolumeFromSpecTask 真正创建 volume。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207092938.jpg)
+
+首先 mount 远程 NFS 目录。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093019.jpg)
+
+执行 stat、du 命令检查 NFS 目录。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093117.jpg)
+
+执行 truncate 创建 volume 文件。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093147.jpg)
+
+设置 volume 文件为可读写。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093231.jpg)
+
+create 操作完成。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093300.jpg)
+
+Volume 在 NFS 上以文件存在，命名为“volume-< volume ID >”。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093335.jpg)
+
+volume 列表中可以看到新创建的 volume。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093356.jpg)
+
+# attach to instance
+
+通过日志分析，nova-compute 会将存放 volume 文件的 NFS 目录 mount 到本地 /opt/stack/data/nova/mnt 目录下，然后修改 instance 的 XML 将 volume 文件配置为虚拟磁盘，日志为 /opt/stack/logs/n-cpu.log
+
+通过 findmnt 和 mkdir 测试和创建 mount 点。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093710.jpg)
+
+mount NFS 目录。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093738.jpg)
+
+更新 instance 的 XML 配置文件，将 volume 文件映射给 instance。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093826.jpg)
+
+也可以通过 virsh edit查看更新后的XML。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093849.jpg)
+
+GUI 界面也会更新相关 attach 信息。
+
+![](http://oydlbqndl.bkt.clouddn.com/微信图片_20171207093915.jpg)
+
+# 小结
+
+Cinder 作为 OpenStack 的块存储服务，为 instance 提供虚拟磁盘。 本章我们首先学习了 Cinder 的架构，然后讨论了 Cinder 的各个服务组件，最后通过使用场景详细分析了 Volume 的各种操作。
+
+操作中的详细日志和截图可以帮助我们更好地理解 Cinder 内部运行机制，并为故障分析提供了非常有益的线索。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
